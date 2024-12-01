@@ -1,4 +1,4 @@
-"""Gets session data from HamStudy
+"""Gets data from HamStudy
 
 Copyright (C) 2024  Jacob Humble
 
@@ -37,7 +37,7 @@ def get_sessions(
         zipcode (str, optional): ZIP code to find exams near. Defaults to None.
         geo_long (str, optional): Longitude to find exams near. Defaults to None.
         geo_lat (str, optional): Latitude to find exams to. Defaults to None.
-        max_distance (str, optional): How far should we look from origin for exams. Defaults to None.
+        max_distance (str, optional): How far should we look for exams. Defaults to None.
         vec (str, optional): VEC to filter by, lowercase. Defaults to None.
         team_id (str, optional): team ID. Defaults to None.
         start_date (str, optional): earliest exam to show. Defaults to None.
@@ -75,8 +75,22 @@ def get_sessions(
         session.headers = {
             'User-Agent': config.USER_AGENT
         }
-    response = session.get("https://hamstudy.org/api/v1/sessions", timeout=5)
+    response = session.get("https://hamstudy.org/api/v1/sessions", timeout=3)
     if response.status_code is not requests.codes.ok:
         raise response.raise_for_status
 
     return response.json()
+
+def get_uls(lookup: str):
+    """get uls data via ExamTools API"""
+    with requests.Session() as session:
+        session.headers = {
+            'User-Agent': config.USER_AGENT
+        }
+
+    response = session.get("https://exam.tools/api/uls/lookup/" + lookup, timeout=3)
+    # we want to inform a user if it's just a not found lookup
+    if response.status_code != requests.codes.ok and response.status_code != 404:
+        raise response.raise_for_status
+
+    return response.json(), response.status_code
